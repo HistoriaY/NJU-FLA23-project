@@ -32,8 +32,117 @@ void TuringMachine::parse()
     ifs.close();
 }
 
-void TuringMachine::simulate()
+void TuringMachine::check_input(string input)
 {
+    for (auto c : input)
+    {
+        if (S.find(c) == S.end())
+        {
+            if (verbose)
+            {
+            }
+            else
+            {
+                cerr << "illegal input string" << endl;
+                exit(1);
+            }
+        }
+    }
+}
+
+string TuringMachine::cur_symbols()
+{
+    string symbols = "";
+    for (int i = 0; i < N; ++i)
+    {
+        char c = tapes[i].cur_symbol();
+        symbols += ((c == 0) ? B : c);
+    }
+    return symbols;
+}
+
+pair<Transition, bool> TuringMachine::get_transition(const string &old_state, string old_symbols)
+{
+    // deal * in transition.old_symbols
+    CombinationGenerator gen{old_symbols};
+    while (gen.hasNext())
+    {
+        old_symbols = gen.getNext();
+        auto it = transitions.find({old_state, old_symbols});
+        if (it != transitions.end())
+        {
+            return {*it, true};
+        }
+    }
+    return {Transition{"", ""}, false};
+}
+
+void TuringMachine::write_tapes(const string &old_symbols, const string &new_symbols)
+{
+    for (int i = 0; i < N; ++i)
+    {
+        if (new_symbols[i] == '*')
+            continue;
+        tapes[i][tapes[i].head] = ((new_symbols[i] == B) ? 0 : new_symbols[i]);
+    }
+}
+
+void TuringMachine::move_heads(const string &moves)
+{
+    for (int i = 0; i < N; ++i)
+    {
+        int bias;
+        switch (moves[i])
+        {
+        case 'l':
+            bias = -1;
+            break;
+        case 'r':
+            bias = 1;
+            break;
+        case '*':
+            bias = 0;
+            break;
+        default:
+            exit(1);
+            break;
+        }
+        tapes[i].head += bias;
+    }
+}
+
+void TuringMachine::simulate(string input)
+{
+    // check input symbols
+    check_input(input);
+    // load input
+    tapes[0].load(input);
+    // simulate
+    int step = 0;
+    string cur_state = q0;
+    bool halt = false;
+    bool acc = false;
+    while (!halt)
+    {
+        if (F.find(cur_state) != F.end())
+            acc = true;
+        if (acc)
+        {
+            cout << "(ACCEPTED) " << tapes[0].content() << endl;
+        }
+        string old_state = cur_state;
+        string old_symbols = cur_symbols();
+        // leave a bug, * should not match _
+        pair<Transition, bool> match = get_transition(old_state, old_symbols);
+        if (!match.second)
+        {
+            halt = true;
+            break;
+        }
+        cur_state = match.first.new_state;
+        write_tapes(match.first.old_symbols, match.first.new_symbols);
+        move_heads(match.first.moves);
+    }
 }
 
 string TuringMachine::skip_useless_line()

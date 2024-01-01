@@ -45,6 +45,6 @@ int main(int argc, char *argv[])
     // parse TM
     tm.parse();
     // simulate TM
-    tm.simulate();
+    tm.simulate(input);
     return 0;
 }

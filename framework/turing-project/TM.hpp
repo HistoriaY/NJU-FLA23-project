@@ -3,10 +3,63 @@
 #include <unordered_set>
 #include <fstream>
 #include <vector>
+#include <optional>
 using namespace std;
+
+const string syntax_error = "syntax error";
 
 class Tape
 {
+public:
+    vector<char> positive{};
+    vector<char> negative{1, 0};
+    int head{0};
+    void load(string input)
+    {
+        positive.resize(input.length());
+        for (int i = 0; i < input.length(); ++i)
+            positive[i] = input[i];
+    }
+    char &operator[](int pos)
+    {
+        vector<char> &half_tape = (pos >= 0) ? positive : negative;
+        int abs_pos = abs(pos);
+        if (abs_pos == half_tape.size())
+            half_tape.push_back(0);
+        return half_tape[abs_pos];
+    }
+    char cur_symbol()
+    {
+        return (*this)[head];
+    }
+    int min_pos()
+    {
+        for (int i = -(negative.size() - 1); i < positive.size(); ++i)
+            if ((*this)[i] != 0)
+                return i;
+        return INT32_MAX;
+    }
+    int max_pos()
+    {
+        for (int i = positive.size() - 1; i > -negative.size(); --i)
+            if ((*this)[i] != 0)
+                return i;
+        return INT32_MIN;
+    }
+    void print_tape()
+    {
+    }
+    string content()
+    {
+        string content = "";
+        int start = min_pos();
+        cout << start << endl;
+        int end = max_pos();
+        cout << end << endl;
+        for (int i = start; i <= end; ++i)
+            content += (*this)[i];
+        return content;
+    }
 };
 
 // <旧状态> <旧符号组> <新符号组> <方向组> <新状态>
@@ -66,6 +119,11 @@ private:
     void parse_F();
     void parse_N();
     void parse_delta();
+    void check_input(string input);
+    string cur_symbols();
+    pair<Transition, bool> get_transition(const string &old_state, string old_symbols);
+    void write_tapes(const string &old_symbols, const string &new_symbols);
+    void move_heads(const string &moves);
     // RE pattern
     const regex empty_line_pattern{"\\s*"};                          // empty line(may only contain blank spaces)
     const regex line_comment_pattern{"\\s*;.*"};                     // line comment
@@ -81,7 +139,7 @@ private:
     const regex f_pattern{"[a-zA-Z0-9_]+"};                          // f in F
     const regex N_pattern{"#N\\s*=\\s*([1-9]\\d*)\\s*(;.*)?"};       // #N = <unsigned int> [; comment]
     // <旧状态> <旧符号组> <新符号组> <方向组> <新状态> [; comment]
-    const regex delta_pattern{"([a-zA-Z0-9_]+)\\s*([^\\s,;\\{\\}\\*]+)\\s*([^\\s,;\\{\\}\\*]+)\\s*([lr\\*]+)\\s*([a-zA-Z0-9_]+)\\s*(;.*)?"};
+    const regex delta_pattern{"([a-zA-Z0-9_]+)\\s*([^\\s,;\\{\\}]+)\\s*([^\\s,;\\{\\}]+)\\s*([lr\\*]+)\\s*([a-zA-Z0-9_]+)\\s*(;.*)?"};
 
     // test func for debug
     void test_parser();
@@ -90,7 +148,35 @@ public:
     TuringMachine(string init_tm_path, bool init_verbose);
     ~TuringMachine();
     void parse();
-    void simulate();
+    void simulate(string input);
 };
 
-const string syntax_error = "syntax error";
+class CombinationGenerator
+{
+private:
+    string input;
+    int n;
+    int combinationsCount;
+    int currentIndex;
+
+public:
+    CombinationGenerator(const string &s)
+        : input(s), n(s.length()), combinationsCount(1 << n), currentIndex(0)
+    {
+    }
+    bool hasNext() const
+    {
+        return currentIndex < combinationsCount;
+    }
+    string getNext()
+    {
+        string combination = input;
+        int i = currentIndex++;
+
+        for (int j = 0; j < n; ++j)
+            if ((i >> j) & 1)
+                combination[j] = '*'; // change current char to *
+
+        return combination;
+    }
+};
