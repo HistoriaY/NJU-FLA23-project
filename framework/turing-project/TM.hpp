@@ -1,0 +1,96 @@
+#include <string>
+#include <regex>
+#include <unordered_set>
+#include <fstream>
+#include <vector>
+using namespace std;
+
+class Tape
+{
+};
+
+// <旧状态> <旧符号组> <新符号组> <方向组> <新状态>
+class Transition
+{
+public:
+    string old_state{};
+    string old_symbols{};
+    string new_symbols{};
+    string moves{};
+    string new_state{};
+    Transition(string init_old_state, string init_old_symbols,
+               string init_new_symbols = "", string init_moves = "", string init_new_state = "")
+        : old_state{init_old_state}, old_symbols{init_old_symbols},
+          new_symbols{init_new_symbols}, moves{init_moves}, new_state{init_new_state}
+    {
+    }
+    // two transitions equal only depend on old_* because deterministic tm
+    bool operator==(const Transition &other) const
+    {
+        return old_state == other.old_state && old_symbols == other.old_symbols;
+    }
+};
+
+// hash func for transition
+class TransitionHash
+{
+public:
+    size_t operator()(const Transition &trans) const
+    {
+        return hash<string>{}(trans.old_state) ^ hash<string>{}(trans.old_symbols);
+    }
+};
+
+class TuringMachine
+{
+private:
+    unordered_set<string> Q{};
+    unordered_set<char> S{};
+    unordered_set<char> G{};
+    string q0{};
+    char B{};
+    unordered_set<string> F{};
+    int N{};
+    vector<Tape> tapes{};
+    unordered_set<Transition, TransitionHash> transitions{};
+
+    ifstream ifs{};
+    string tm_path;
+    bool verbose;
+    string skip_useless_line(); // skip leading line comment and empty line, return the first useful line
+    void parse_Q();
+    void parse_S();
+    void parse_G();
+    void parse_q0();
+    void parse_B();
+    void parse_F();
+    void parse_N();
+    void parse_delta();
+    // RE pattern
+    const regex empty_line_pattern{"\\s*"};                          // empty line(may only contain blank spaces)
+    const regex line_comment_pattern{"\\s*;.*"};                     // line comment
+    const regex Q_pattern{"#Q\\s*=\\s*\\{([^\\}]*)\\}\\s*(;.*)?"};   // #Q = {q1,q2,...,qi} [; comment]
+    const regex q_pattern{"[a-zA-Z0-9_]+"};                          // q in Q
+    const regex S_pattern{"#S\\s*=\\s*\\{([^\\}]*)\\}\\s*(;.*)?"};   // #S = {s1,s2,...,sj} [; comment]
+    const regex s_pattern{"[^\\s,;\\{\\}\\*_]"};                     // s in S
+    const regex G_pattern{"#G\\s*=\\s*\\{([^\\}]*)\\}\\s*(;.*)?"};   // #G = {s1,s2,...,sk} [; comment]
+    const regex g_pattern{"[^\\s,;\\{\\}\\*]"};                      // g in G
+    const regex q0_pattern{"#q0\\s*=\\s*([a-zA-Z0-9_]+)\\s*(;.*)?"}; // #q0 = <start state> [; comment]
+    const regex B_pattern{"#B\\s*=\\s*(_)\\s*(;+.*)?"};              // #B = _ [; comment]
+    const regex F_pattern{"#F\\s*=\\s*\\{([^\\}]*)\\}\\s*(;.*)?"};   // #F = {f1,f2,...,fn} [; comment]
+    const regex f_pattern{"[a-zA-Z0-9_]+"};                          // f in F
+    const regex N_pattern{"#N\\s*=\\s*([1-9]\\d*)\\s*(;.*)?"};       // #N = <unsigned int> [; comment]
+    // <旧状态> <旧符号组> <新符号组> <方向组> <新状态> [; comment]
+    const regex delta_pattern{"([a-zA-Z0-9_]+)\\s*([^\\s,;\\{\\}\\*]+)\\s*([^\\s,;\\{\\}\\*]+)\\s*([lr\\*]+)\\s*([a-zA-Z0-9_]+)\\s*(;.*)?"};
+
+    // test func for debug
+    void test_parser();
+
+public:
+    TuringMachine(string init_tm_path, bool init_verbose);
+    ~TuringMachine();
+    void parse();
+    void simulate();
+};
+
+const string syntax_error = "syntax error";
