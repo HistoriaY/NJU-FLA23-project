@@ -150,6 +150,9 @@ void TuringMachine::simulate(string input)
             cout << left << setw(6 + num_digit(N)) << "State"
                  << ": "
                  << cur_state << endl;
+            cout << left << setw(6 + num_digit(N)) << "ACC"
+                 << ": "
+                 << (acc ? "Yes" : "No") << endl;
             for (int i = 0; i < N; ++i)
             {
                 cout << "Index" << left << setw(1 + num_digit(N)) << i << ": ";
@@ -177,7 +180,7 @@ void TuringMachine::simulate(string input)
     {
         if (verbose)
         {
-            cout << "(ACCEPTED) " << endl;
+            cout << "ACCEPTED" << endl;
             cout << "Result: " << tapes[0].content() << endl;
             cout << "==================== END ====================" << endl;
         }
@@ -188,7 +191,7 @@ void TuringMachine::simulate(string input)
     {
         if (verbose)
         {
-            cout << "(UNACCEPTED) " << endl;
+            cout << "UNACCEPTED" << endl;
             cout << "Result: " << tapes[0].content() << endl;
             cout << "==================== END ====================" << endl;
         }
