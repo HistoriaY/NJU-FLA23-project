@@ -1,4 +1,3 @@
-#include <iostream>
 #include "TM.hpp"
 TuringMachine::TuringMachine(string init_tm_path, bool init_verbose)
     : tm_path{init_tm_path}, verbose{init_verbose}
@@ -27,7 +26,7 @@ void TuringMachine::parse()
     parse_F();
     parse_N();
     parse_delta();
-    test_parser();
+    // test_parser();
     // close tm file
     ifs.close();
 }
@@ -56,7 +55,8 @@ string TuringMachine::cur_symbols()
     for (int i = 0; i < N; ++i)
     {
         char c = tapes[i].cur_symbol();
-        symbols += ((c == 0) ? B : c);
+        // printf("tape %d return symbol char: %c\n", i, c);
+        symbols += c;
     }
     return symbols;
 }
@@ -83,7 +83,7 @@ void TuringMachine::write_tapes(const string &old_symbols, const string &new_sym
     {
         if (new_symbols[i] == '*')
             continue;
-        tapes[i][tapes[i].head] = ((new_symbols[i] == B) ? 0 : new_symbols[i]);
+        tapes[i][tapes[i].head] = new_symbols[i];
     }
 }
 
@@ -113,6 +113,7 @@ void TuringMachine::move_heads(const string &moves)
 
 void TuringMachine::simulate(string input)
 {
+    cout << "start simulate" << endl;
     // check input symbols
     check_input(input);
     // load input
@@ -124,14 +125,17 @@ void TuringMachine::simulate(string input)
     bool acc = false;
     while (!halt)
     {
+        cout << "step :" << step << endl;
+        string old_state = cur_state;
+        string old_symbols = cur_symbols();
+        cout << "current state: " << old_state << endl;
+        cout << "current symbols: " << old_symbols << endl;
         if (F.find(cur_state) != F.end())
             acc = true;
         if (acc)
         {
             cout << "(ACCEPTED) " << tapes[0].content() << endl;
         }
-        string old_state = cur_state;
-        string old_symbols = cur_symbols();
         // leave a bug, * should not match _
         pair<Transition, bool> match = get_transition(old_state, old_symbols);
         if (!match.second)
@@ -139,6 +143,7 @@ void TuringMachine::simulate(string input)
             halt = true;
             break;
         }
+        ++step;
         cur_state = match.first.new_state;
         write_tapes(match.first.old_symbols, match.first.new_symbols);
         move_heads(match.first.moves);
@@ -356,7 +361,7 @@ void TuringMachine::parse_N()
     }
     N = stoi(init_N);
     // create N tapes
-    tapes.resize(N);
+    tapes.resize(N, {B});
 }
 
 void TuringMachine::parse_delta()

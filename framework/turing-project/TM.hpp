@@ -2,6 +2,7 @@
 #include <regex>
 #include <unordered_set>
 #include <fstream>
+#include <iostream>
 #include <vector>
 #include <optional>
 using namespace std;
@@ -11,9 +12,18 @@ const string syntax_error = "syntax error";
 class Tape
 {
 public:
-    vector<char> positive{};
-    vector<char> negative{1, 0};
+    // there was once a bug, init for vector
+    // vector<char> v(1,0) != vector<char> v{1,0};
+    vector<char> positive;
+    vector<char> negative;
+    char B;
     int head{0};
+
+    Tape(char init_B = '_')
+        : B{init_B}, positive{init_B}, negative{init_B}
+    {
+    }
+
     void load(string input)
     {
         positive.resize(input.length());
@@ -25,7 +35,7 @@ public:
         vector<char> &half_tape = (pos >= 0) ? positive : negative;
         int abs_pos = abs(pos);
         if (abs_pos == half_tape.size())
-            half_tape.push_back(0);
+            half_tape.push_back(B);
         return half_tape[abs_pos];
     }
     char cur_symbol()
@@ -34,16 +44,20 @@ public:
     }
     int min_pos()
     {
-        for (int i = -(negative.size() - 1); i < positive.size(); ++i)
-            if ((*this)[i] != 0)
+        for (int i = -(negative.size() - 1); i < (int)positive.size(); ++i)
+        {
+            if ((*this)[i] != B)
                 return i;
+        }
         return INT32_MAX;
     }
     int max_pos()
     {
-        for (int i = positive.size() - 1; i > -negative.size(); --i)
-            if ((*this)[i] != 0)
+        for (int i = positive.size() - 1; i > -(int)negative.size(); --i)
+        {
+            if ((*this)[i] != B)
                 return i;
+        }
         return INT32_MIN;
     }
     void print_tape()
@@ -51,11 +65,14 @@ public:
     }
     string content()
     {
-        string content = "";
         int start = min_pos();
-        cout << start << endl;
+        // cout << "content start: " << start << endl;
         int end = max_pos();
-        cout << end << endl;
+        // cout << "content end: " << end << endl;
+        // no content
+        if (start == INT32_MAX || end == INT32_MIN)
+            return "";
+        string content = "";
         for (int i = start; i <= end; ++i)
             content += (*this)[i];
         return content;
