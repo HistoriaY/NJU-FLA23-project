@@ -1,4 +1,10 @@
 #include "TM.hpp"
+
+int num_digit(int n)
+{
+    return to_string(abs(n)).length();
+}
+
 TuringMachine::TuringMachine(string init_tm_path, bool init_verbose)
     : tm_path{init_tm_path}, verbose{init_verbose}
 {
@@ -31,20 +37,24 @@ void TuringMachine::parse()
     ifs.close();
 }
 
-void TuringMachine::check_input(string input)
+void TuringMachine::check_input(const string &input)
 {
-    for (auto c : input)
+    for (int i = 0; i < input.length(); ++i)
     {
-        if (S.find(c) == S.end())
+        if (S.find(input[i]) == S.end())
         {
             if (verbose)
             {
+                cerr << "Input: " << input << endl;
+                cerr << "==================== ERR ====================" << endl;
+                cerr << "error: Symbol \"" << input[i] << "\" in input is not defined in the set of input symbols" << endl;
+                cerr << "Input: " << input << endl;
+                cerr << right << setw(8 + i) << '^' << endl;
+                cerr << "==================== END ====================" << endl;
             }
             else
-            {
                 cerr << "illegal input string" << endl;
-                exit(1);
-            }
+            exit(1);
         }
     }
 }
@@ -113,9 +123,13 @@ void TuringMachine::move_heads(const string &moves)
 
 void TuringMachine::simulate(string input)
 {
-    cout << "start simulate" << endl;
     // check input symbols
     check_input(input);
+    if (verbose)
+    {
+        cout << "Input: " << input << endl;
+        cout << "==================== RUN ====================" << endl;
+    }
     // load input
     tapes[0].load(input);
     // simulate
@@ -125,18 +139,28 @@ void TuringMachine::simulate(string input)
     bool acc = false;
     while (!halt)
     {
-        cout << "step :" << step << endl;
         string old_state = cur_state;
         string old_symbols = cur_symbols();
-        cout << "current state: " << old_state << endl;
-        cout << "current symbols: " << old_symbols << endl;
         if (F.find(cur_state) != F.end())
             acc = true;
-        if (acc)
+        if (verbose)
         {
-            cout << "(ACCEPTED) " << tapes[0].content() << endl;
+            cout << left << setw(6 + num_digit(N)) << "Step"
+                 << ": " << step << endl;
+            cout << left << setw(6 + num_digit(N)) << "State"
+                 << ": "
+                 << cur_state << endl;
+            for (int i = 0; i < N; ++i)
+            {
+                cout << "Index" << left << setw(1 + num_digit(N)) << i << ": ";
+                tapes[i].print_index();
+                cout << "Tape" << left << setw(2 + num_digit(N)) << i << ": ";
+                tapes[i].print_tape();
+                cout << "Head" << left << setw(2 + num_digit(N)) << i << ": ";
+                tapes[i].print_head();
+            }
+            cout << "---------------------------------------------" << endl;
         }
-        // leave a bug, * should not match _
         pair<Transition, bool> match = get_transition(old_state, old_symbols);
         if (!match.second)
         {
@@ -147,6 +171,29 @@ void TuringMachine::simulate(string input)
         cur_state = match.first.new_state;
         write_tapes(match.first.old_symbols, match.first.new_symbols);
         move_heads(match.first.moves);
+    }
+    // halt
+    if (acc)
+    {
+        if (verbose)
+        {
+            cout << "(ACCEPTED) " << endl;
+            cout << "Result: " << tapes[0].content() << endl;
+            cout << "==================== END ====================" << endl;
+        }
+        else
+            cout << "(ACCEPTED) " << tapes[0].content() << endl;
+    }
+    else
+    {
+        if (verbose)
+        {
+            cout << "(UNACCEPTED) " << endl;
+            cout << "Result: " << tapes[0].content() << endl;
+            cout << "==================== END ====================" << endl;
+        }
+        else
+            cout << "(UNACCEPTED) " << tapes[0].content() << endl;
     }
 }
 

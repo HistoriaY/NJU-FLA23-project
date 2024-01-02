@@ -3,11 +3,14 @@
 #include <unordered_set>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <optional>
 using namespace std;
 
 const string syntax_error = "syntax error";
+
+int num_digit(int n);
 
 class Tape
 {
@@ -60,8 +63,17 @@ public:
         }
         return INT32_MIN;
     }
+    void print_index()
+    {
+        cout << endl;
+    }
     void print_tape()
     {
+        cout << endl;
+    }
+    void print_head()
+    {
+        cout << endl;
     }
     string content()
     {
@@ -136,7 +148,7 @@ private:
     void parse_F();
     void parse_N();
     void parse_delta();
-    void check_input(string input);
+    void check_input(const string &input);
     string cur_symbols();
     pair<Transition, bool> get_transition(const string &old_state, string old_symbols);
     void write_tapes(const string &old_symbols, const string &new_symbols);
