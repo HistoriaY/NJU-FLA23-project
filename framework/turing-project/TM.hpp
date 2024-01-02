@@ -191,7 +191,8 @@ public:
         int i = currentIndex++;
 
         for (int j = 0; j < n; ++j)
-            if ((i >> j) & 1)
+            // skip _
+            if (combination[j] != '_' && (i >> j) & 1)
                 combination[j] = '*'; // change current char to *
 
         return combination;
