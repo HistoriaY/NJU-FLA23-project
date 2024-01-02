@@ -65,14 +65,23 @@ public:
     }
     void print_index()
     {
+        int start = min(head, min_pos()), end = max(head, max_pos());
+        for (int i = start; i <= end; ++i)
+            cout << abs(i) << ' ';
         cout << endl;
     }
     void print_tape()
     {
+        int start = min(head, min_pos()), end = max(head, max_pos());
+        for (int i = start; i <= end; ++i)
+            cout << left << setw(num_digit(i) + 1) << (*this)[i];
         cout << endl;
     }
     void print_head()
     {
+        int start = min(head, min_pos()), end = max(head, max_pos());
+        for (int i = start; i <= end; ++i)
+            cout << left << setw(num_digit(i) + 1) << (i == head ? '^' : ' ');
         cout << endl;
     }
     string content()
