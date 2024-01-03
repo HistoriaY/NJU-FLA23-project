@@ -32,6 +32,8 @@ void TuringMachine::parse()
     parse_F();
     parse_N();
     parse_delta();
+    consistency_check_F_subset_Q();
+    consistency_check_delta();
     // test_parser();
     // close tm file
     ifs.close();
@@ -441,6 +443,88 @@ void TuringMachine::parse_delta()
             cerr << syntax_error << endl;
             if (verbose)
                 cerr << "invalid transition description: " << delta_str << endl;
+            exit(1);
+        }
+    }
+}
+
+void TuringMachine::consistency_check_F_subset_Q()
+{
+    for (const auto &f : F)
+    {
+        if (Q.find(f) == Q.end())
+        {
+            cerr << syntax_error << endl;
+            if (verbose)
+                cerr << "Final state: " << f << " not in Q" << endl;
+            exit(1);
+        }
+    }
+}
+
+void TuringMachine::consistency_check_delta()
+{
+    for (const auto &trans : transitions)
+    {
+        const string error_prefix = "transition : \"" + trans.content() + "\" ";
+        // old_state
+        if (Q.find(trans.old_state) == Q.end())
+        {
+            cerr << syntax_error << endl;
+            if (verbose)
+                cerr << error_prefix << trans.old_state << " not in Q" << endl;
+            exit(1);
+        }
+        // new_state
+        if (Q.find(trans.new_state) == Q.end())
+        {
+            cerr << syntax_error << endl;
+            if (verbose)
+                cerr << error_prefix << trans.new_state << " not in Q" << endl;
+            exit(1);
+        }
+        // old_symbols
+        if (trans.old_symbols.length() != N)
+        {
+            cerr << syntax_error << endl;
+            if (verbose)
+                cerr << error_prefix << trans.old_symbols << " len != N" << endl;
+            exit(1);
+        }
+        for (const auto g : trans.old_symbols)
+        {
+            if (G.find(g) == G.end())
+            {
+                cerr << syntax_error << endl;
+                if (verbose)
+                    cerr << error_prefix << g << " not in G" << endl;
+                exit(1);
+            }
+        }
+        // new_symbols
+        if (trans.new_symbols.length() != N)
+        {
+            cerr << syntax_error << endl;
+            if (verbose)
+                cerr << error_prefix << trans.new_symbols << " len != N" << endl;
+            exit(1);
+        }
+        for (const auto g : trans.new_symbols)
+        {
+            if (G.find(g) == G.end())
+            {
+                cerr << syntax_error << endl;
+                if (verbose)
+                    cerr << error_prefix << g << " not in G" << endl;
+                exit(1);
+            }
+        }
+        // moves
+        if (trans.moves.length() != N)
+        {
+            cerr << syntax_error << endl;
+            if (verbose)
+                cerr << error_prefix << trans.moves << " len != N" << endl;
             exit(1);
         }
     }

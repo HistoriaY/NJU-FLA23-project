@@ -120,6 +120,11 @@ public:
     {
         return old_state == other.old_state && old_symbols == other.old_symbols;
     }
+
+    string content() const
+    {
+        return this->old_state + " " + this->old_symbols + " " + this->new_symbols + " " + this->moves + " " + this->new_state;
+    }
 };
 
 // hash func for transition
@@ -157,6 +162,8 @@ private:
     void parse_F();
     void parse_N();
     void parse_delta();
+    void consistency_check_F_subset_Q();
+    void consistency_check_delta();
     void check_input(const string &input);
     string cur_symbols();
     pair<Transition, bool> get_transition(const string &old_state, string old_symbols);
