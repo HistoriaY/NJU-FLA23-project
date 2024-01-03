@@ -265,6 +265,9 @@ void TuringMachine::parse_S()
             cerr << "invalid S description: " << S_str << endl;
         exit(1);
     }
+    // group_str == "" means no input symbols
+    if (group_str.empty())
+        return;
     // extract each s in group_str
     regex delimiter(",");
     sregex_token_iterator it(group_str.begin(), group_str.end(), delimiter, -1);
