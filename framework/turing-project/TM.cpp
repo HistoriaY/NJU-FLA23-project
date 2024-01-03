@@ -379,6 +379,9 @@ void TuringMachine::parse_F()
             cerr << "invalid F description: " << F_str << endl;
         exit(1);
     }
+    // group_str == "" means no Final state
+    if (group_str.empty())
+        return;
     // extract each f in group_str
     regex delimiter(",");
     sregex_token_iterator it(group_str.begin(), group_str.end(), delimiter, -1);
