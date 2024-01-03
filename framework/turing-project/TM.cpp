@@ -493,6 +493,8 @@ void TuringMachine::consistency_check_delta()
         }
         for (const auto g : trans.old_symbols)
         {
+            if (g == '*')
+                continue;
             if (G.find(g) == G.end())
             {
                 cerr << syntax_error << endl;
@@ -511,6 +513,8 @@ void TuringMachine::consistency_check_delta()
         }
         for (const auto g : trans.new_symbols)
         {
+            if (g == '*')
+                continue;
             if (G.find(g) == G.end())
             {
                 cerr << syntax_error << endl;
